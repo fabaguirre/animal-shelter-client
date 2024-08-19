@@ -1,6 +1,8 @@
 import { useToggle, upperFirst } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import { TextInput, PasswordInput, Group, Button, Anchor, Stack, Checkbox } from '@mantine/core';
+import { useNavigate } from 'react-router-dom';
+import { loginUser, registerUser } from './services/auth';
 
 const ROLES = {
   ADOPTER: 'adopter',
@@ -8,6 +10,7 @@ const ROLES = {
 } as const;
 
 export default function LoginCard() {
+  const navigate = useNavigate();
   const [type, toggle] = useToggle(['login', 'register']);
 
   const form = useForm({
@@ -32,23 +35,25 @@ export default function LoginCard() {
     },
   });
 
-  const handleSubmit = (values: typeof form.values) => {
-    const API_URL = import.meta.env.VITE_API_URL;
-    const input: Record<string, unknown> = {
+  const handleSubmit = async (values: typeof form.values) => {
+    const baseInput = {
       email: values.email,
       password: values.password,
     };
 
-    if (type === 'register') {
-      input.first_name = values.firstName;
-      input.last_name = values.lastName;
-      input.role = values.isVolunteer ? ROLES.VOLUNTEER : ROLES.ADOPTER;
+    if (type === 'login') {
+      await loginUser(baseInput);
+    } else {
+      await registerUser({
+        ...baseInput,
+        first_name: values.firstName,
+        last_name: values.lastName,
+        role: values.isVolunteer ? ROLES.VOLUNTEER : ROLES.ADOPTER,
+      });
     }
 
-    fetch(API_URL.concat('/api/auth/', type, '/'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input),
+    navigate({
+      pathname: '/animals',
     });
   };
 
