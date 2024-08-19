@@ -2,7 +2,7 @@ import { useToggle, upperFirst } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import { TextInput, PasswordInput, Group, Button, Anchor, Stack, Checkbox } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
-import { loginUser, registerUser } from './services/auth';
+import { loginUser, registerUser } from '@/services/auth';
 
 const ROLES = {
   ADOPTER: 'adopter',

@@ -10,3 +10,12 @@ interface LoginInput {
   email: string;
   password: string;
 }
+
+interface Animal {
+  id: number;
+  name: string;
+  age: number;
+  breed: string;
+  type: string;
+  status: string;
+}

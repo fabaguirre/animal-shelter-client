@@ -13,11 +13,11 @@ export const post = async ({ path, data }: { path: string; data: unknown }) =>
     return res.json();
   });
 
-export const get = async (path: string) =>
+export const get = async <T>(path: string) =>
   fetch(buildApiUrl(path), {
     method: 'GET',
     headers: { Authorization: `Bearer ${getToken()}` },
   }).then((res) => {
     if (!res.ok) throw new Error(res.statusText);
-    return res.json();
+    return res.json() as T;
   });
