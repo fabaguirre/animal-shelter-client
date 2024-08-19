@@ -1,6 +1,11 @@
 import { useToggle, upperFirst } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
-import { TextInput, PasswordInput, Group, Button, Checkbox, Anchor, Stack } from '@mantine/core';
+import { TextInput, PasswordInput, Group, Button, Anchor, Stack, Checkbox } from '@mantine/core';
+
+const ROLES = {
+  ADOPTER: 'adopter',
+  VOLUNTEER: 'volunteer',
+} as const;
 
 export default function LoginCard() {
   const [type, toggle] = useToggle(['login', 'register']);
@@ -9,9 +14,10 @@ export default function LoginCard() {
     mode: 'uncontrolled',
     initialValues: {
       email: '',
-      name: '',
+      firstName: '',
+      lastName: '',
       password: '',
-      terms: false,
+      isVolunteer: false,
     },
 
     validate: {
@@ -23,28 +29,53 @@ export default function LoginCard() {
       },
       password: (value) =>
         value.length >= 6 ? null : 'Password should include at least 6 characters',
-      terms: (value) => (value ? null : 'You should accept terms and conditions'),
     },
   });
 
   const handleSubmit = (values: typeof form.values) => {
-    console.debug('🚀 ~ handleSubmit ~ values:', values);
+    const API_URL = import.meta.env.VITE_API_URL;
+    const input: Record<string, unknown> = {
+      email: values.email,
+      password: values.password,
+    };
+
+    if (type === 'register') {
+      input.first_name = values.firstName;
+      input.last_name = values.lastName;
+      input.role = values.isVolunteer ? ROLES.VOLUNTEER : ROLES.ADOPTER;
+    }
+
+    fetch(API_URL.concat('/api/auth/', type, '/'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
   };
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack>
         {type === 'register' && (
-          <TextInput
-            required
-            label="Name"
-            placeholder="Your name"
-            radius="md"
-            {...form.getInputProps('name')}
-          />
+          <>
+            <TextInput
+              required
+              label="Name"
+              placeholder="Your name"
+              radius="md"
+              {...form.getInputProps('firstName')}
+            />
+            <TextInput
+              required
+              label="Last Name"
+              placeholder="Yourlast name"
+              radius="md"
+              {...form.getInputProps('lastName')}
+            />
+          </>
         )}
 
         <TextInput
+          withAsterisk={type === 'register'}
           label="Email"
           placeholder="your@email.com"
           radius="md"
@@ -52,6 +83,7 @@ export default function LoginCard() {
         />
 
         <PasswordInput
+          withAsterisk={type === 'register'}
           label="Password"
           placeholder="Your password"
           radius="md"
@@ -59,7 +91,12 @@ export default function LoginCard() {
         />
 
         {type === 'register' && (
-          <Checkbox label="I accept terms and conditions" {...form.getInputProps('terms')} />
+          <Checkbox
+            size="xs"
+            label={`You are a ${ROLES.VOLUNTEER}?`}
+            labelPosition="left"
+            {...form.getInputProps('role')}
+          />
         )}
       </Stack>
 
